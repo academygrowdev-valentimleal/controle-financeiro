@@ -16,3 +16,15 @@ Abra `index.html` no navegador, ou use a extensão **Live Server** do VS Code (b
 
 ## Conceitos praticados
 Variáveis, tipos, arrays e objetos · operadores · condicionais (`if`, `switch`) · repetição (`for...of`) · funções e arrow functions · métodos de String, Number e Array (`filter`, `reduce`, `map`, `find`, `findIndex`, `splice`, `sort`, `includes`) · DOM (captura, criação de elementos, atributos, `dataset`, `classList`) · eventos e delegação de eventos · localStorage + JSON · `try/catch`.
+
+---
+
+## Pré-requisito EAD (cumprir antes do encontro)
+
+| Módulo EAD | Blocos obrigatórios | Usado na etapa |
+|---|---|---|
+| Fundamentos da Programação em JS | Fundamentação, Variáveis, Dados Básicos, Dados Estruturados | 1 |
+| Fundamentos da Programação em JS | Operadores, Estruturas Condicionais, Estruturas de Repetição, Escopos, Funções | 3 e 4 |
+| Práticas Avançadas em JS | Métodos de String, Number e Arrays (push, filter, find/findIndex, forEach/map, slice/splice, includes, sort, reduce) | 4, 5 e 6 |
+| Práticas Avançadas em JS | Erros no JavaScript + Modo debug do browser | durante todo o encontro, 7 |
+| Tópicos Avançados de Front-End | JavaScript para o Front-End (DOM, atributos, criar/excluir elementos, eventos, Event Listener, Local Storage) | 2, 5, 6 e 7 |
