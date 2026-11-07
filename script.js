@@ -17,18 +17,24 @@
 
 const CHAVE_STORAGE = 'planilhaFinanceira.lancamentos';
 
+
 // TODO 1.1 — Crie um array com as categorias da planilha.
 // Sugestão: Salário, Freelance, Moradia, Alimentação, Transporte,
 //           Saúde, Educação, Lazer, Outros
-const CATEGORIAS = [];
+const CATEGORIAS = ['Salário', 'Freelance', 'Moradia', 'Alimentação', 'Transporte', 'Saúde', 'Educação', 'Lazer', 'Outros'];
 
 // TODO 1.2 — Cada linha da planilha será um OBJETO. Escreva no Console
 // um objeto de exemplo com: id, descricao, valor, tipo ('entrada' | 'saida'),
 // categoria e data ('AAAA-MM-DD'). Depois, crie uma lista com 3 deles
 // e teste: lista[0].valor, lista.length, lista[2].categoria...
+// const exemploLancamentos = [
+//   { id: '1', descricao: 'Salário', valor: 4200, tipo: 'entrada', categoria: 'Salário', data: '2026-11-05' }, // [0]
+//   { id: '2', descricao: 'Aluguel', valor: 1350, tipo: 'saida', categoria: 'Moradia', data: '2026-11-06' }, // [1]
+//   { id: '3', descricao: 'Mercado do mês', valor: 780.45, tipo: 'saida', categoria: 'Alimentação', data: '2026-11-08' }, // [2]
+// ];
 
-let lancamentos = carregarLancamentos(); // a lista de objetos (estado da aplicação)
-let idEmEdicao = null;
+let lancamentos = carregarLancamentos(); // a lista de objetos (estado da aplicação) [] => [...itens]
+let idEmEdicao = null; // null = criando um novo lançamento; string = id do lançamento que está sendo editado
 
 /* ---------------------------------------------------------
    ETAPA 2 — CAPTURANDO ELEMENTOS DO DOM  (já pronto)
@@ -36,7 +42,10 @@ let idEmEdicao = null;
    Repare: cada id aqui existe no index.html.
    --------------------------------------------------------- */
 
+// propriedades - dados sobre uma coisa
+// métodos - ações que a coisa pode fazer
 const form = document.getElementById('form-lancamento');
+console.log(form)
 const campoDescricao = document.getElementById('descricao');
 const campoValor = document.getElementById('valor');
 const campoData = document.getElementById('data');
@@ -75,16 +84,24 @@ function formatarMoeda(valor) {
 }
 
 function formatarData(dataISO) {
+  // ISO -> AAAA-MM-DD -> [AAAA, MM, DD] -> [DD, MM, AAAA] -> DD/MM/AAAA
+  // BR -> DD/MM/AAAA
   return dataISO.split('-').reverse().join('/');
 }
 
 function hojeISO() {
   const hoje = new Date();
-  hoje.setMinutes(hoje.getMinutes() - hoje.getTimezoneOffset());
+  hoje.setMinutes(hoje.getMinutes() - hoje.getTimezoneOffset()); -3
   return hoje.toISOString().slice(0, 10);
 }
 
+
+// arrow functions
 const normalizar = (texto) => texto.trim().toLowerCase();
+
+// function normalizar2 (texto) {
+//   return texto.trim().toLowerCase();
+// }
 
 const gerarId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
@@ -97,41 +114,138 @@ const gerarId = () => Date.now().toString(36) + Math.random().toString(36).slice
 
 function validarLancamento(lancamento) {
   const erros = [];
+
   // TODO 4.1 — Adicione mensagens em "erros" quando:
   //  - descricao tiver menos de 3 caracteres
+  if (lancamento.descricao.length < 3) {
+    erros.push('Descrição deve ter pelo menos 3 caracteres.');
+  }
+
   //  - valor não for número (Number.isNaN) ou for <= 0
+  if (Number.isNaN(lancamento.valor) || lancamento.valor <= 0) {
+    erros.push('Valor deve ser um número maior que zero.');
+  }
+
   //  - categoria não estiver em CATEGORIAS (includes)
+  if (!CATEGORIAS.includes(lancamento.categoria)) {
+    erros.push('Categoria inválida.');
+  }
+
   //  - data estiver vazia
+  // '', 0, undefined, null, false -> falsy -> false -> !false -> true
+  if (!lancamento.data) {
+    erros.push('Data não pode estar vazia.');
+  }
+
   return erros;
 }
 
 function calcularResumo(lista) {
   // TODO 4.2 — Some entradas e saídas.
   // 1º faça com for...of; depois refatore com reduce.
+
+
+  const resumo = lista.reduce((resultado, item) => {
+    if (item.tipo === 'entrada') {
+      resultado.entradas += item.valor;
+    } else {
+      resultado.saidas += item.valor;
+    }
+
+    return resultado;
+  },
+    { entradas: 0, saidas: 0, saldo: 0 }
+  )
+
+  resumo.saldo = resumo.entradas - resumo.saidas;
+
+
+  //const resultado = { entradas: 0, saidas: 0, saldo: 0 };
+
+  // for (const item of lista) {
+  //   if (item.tipo === 'entrada') {
+  //     resultado.entradas += item.valor;
+  //     // resultado.entradas = resultado.entradas + item.valor;
+  //   } else {
+  //     // tipo === 'saida'
+  //     resultado.saidas += item.valor;
+  //   }
+  // }
+
+
   // Retorne { entradas, saidas, saldo }
-  return { entradas: 0, saidas: 0, saldo: 0 };
+  return resumo;
 }
 
 function gastosPorCategoria(lista) {
-  // TODO 4.3 (bônus) — Retorne um objeto { Moradia: 1350, Lazer: 132.5, ... }
+  // TODO 4.3 (bônus) — Retorne um objeto {Moradia: 1950, Lazer: 132.5, ... }
   // somando apenas as SAÍDAS.
-  return {};
+  const totais = {}
+
+  for (const item of lista) {
+    if (item.tipo === 'saida') {
+      if (totais[item.categoria]) { // totais.Moradia != undefined 
+        totais[item.categoria] += item.valor;
+      } else {
+        totais[item.categoria] = item.valor;
+      }
+    }
+  }
+
+
+
+  return totais;
 }
 
 function ordenar(lista, criterio) {
   // TODO 5.3 — Use switch (criterio) com os casos:
   // 'data-desc', 'data-asc', 'valor-desc', 'valor-asc'
   // Atenção: sort altera o array original. Ordene uma cópia (slice).
-  return lista;
+  const copia = lista.slice(); // [...lista] também funciona
+
+  switch (criterio) {
+    case 'data-asc':
+      return copia.sort((a, b) => a.data.localeCompare(b.data));
+
+    case 'data-desc':
+      return copia.sort((a, b) => b.data.localeCompare(a.data)); // 2026-11-08 > 2026-11-06
+
+    case 'valor-asc':
+      return copia.sort((a, b) => a.valor - b.valor);
+
+    case 'valor-desc':
+      return copia.sort((a, b) => b.valor - a.valor);
+
+    default:
+      return copia.sort((a, b) => b.data.localeCompare(a.data)); // padrão: data-desc
+  }
+
 }
 
 function obterLancamentosVisiveis() {
   // TODO 6.1 — Aplique os filtros com filter:
   //  - busca (filtroBusca.value) em descricao OU categoria
   //  - tipo (filtroTipo.value): 'todos' | 'entrada' | 'saida'
-  //  - mês (filtroMes.value): '2026-11' -> use startsWith
+  //  - mês (filtroMes.value): '2026-11' -> use startsWith  -> 2026-11-06
   // Depois retorne ordenar(filtrados, ordenacao.value)
-  return lancamentos;
+  const textoDigitado = normalizar(filtroBusca.value);
+  const tipoSelecionado = filtroTipo.value;
+  const mesSelecionado = filtroMes.value;
+
+  const lancamentosFiltrados = lancamentos.filter((item) => {
+
+    const matchDescricaoCategoria = normalizar(item.descricao).includes(textoDigitado) || normalizar(item.categoria).includes(textoDigitado); // boolean
+
+    const matchTipo = tipoSelecionado === 'todos' || item.tipo === tipoSelecionado; // boolean
+
+    const matchMes = mesSelecionado === '' || item.data.startsWith(mesSelecionado); // boolean
+
+    return matchDescricaoCategoria && matchTipo && matchMes;
+
+  })
+
+
+  return ordenar(lancamentosFiltrados, ordenacao.value);
 }
 
 /* ---------------------------------------------------------
@@ -141,6 +255,12 @@ function obterLancamentosVisiveis() {
 
 function preencherCategorias() {
   // TODO 5.1 — Para cada categoria, crie um <option> e insira em campoCategoria.
+  CATEGORIAS.forEach((categoria) => {
+    const option = document.createElement('option'); // <option></option>
+    option.value = categoria; // <option value="Salário"></option>
+    option.textContent = categoria; // <option value="Salário">Salário</option>
+    campoCategoria.appendChild(option); // insere no DOM
+  })
 }
 
 // Helpers prontos: criam células e botões da tabela com segurança (textContent)
